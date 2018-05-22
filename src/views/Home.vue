@@ -4,7 +4,7 @@
     <header class="header">
     <el-row>
      <el-col :span="2">
-       <img class="logo" src="../assets/logo.png" style="min-width:140px;"> 
+       <img class="logo" src="../assets/100.png" style="min-width:140px;">  
      </el-col>
      <el-col :span="12">
       <el-menu default-active=""  class="el-menu-demo" mode="horizontal" @select="" style="background-color: rgba(0,0,0,0);color:#fff;">

@@ -25,9 +25,9 @@ function setFormRequestParams(apiParams,params){
   return requestParams;
 }
 
-let base = 'list/wallet/web/api';
+//let base = 'list/wallet/web/api';
 //let base = 'http://192.168.2.109:3307/wallet/web/api';
-//let base = 'http://118.190.132.240:3307/wallet/web/api';
+let base = 'http://118.190.132.240:3307/wallet/web/api';
 
 
 let apiParams = {

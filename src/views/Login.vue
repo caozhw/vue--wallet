@@ -1,7 +1,7 @@
 <template>
   <div class="login-bg">
     <el-form :model="form" :rules="validRules" ref="form" label-position="left" label-width="80px" class="demo-ruleForm login-container">
-      <h3 class="title">BITKER-WALLET</h3>
+      <img class='logo' src="../assets/99.png"> <h3 class="title">WALLET</h3>
       <el-form-item prop="username" label="用户名">
         <el-input type="text" v-model="form.username"  placeholder="用户名"></el-input>
       </el-form-item>
@@ -139,6 +139,13 @@
     width: 100%;
     height: 100%;
     background: url(../assets/bg.png) no-repeat center 0;
+    .logo{
+      width: 84px;
+      height: 20px;
+      position: relative;
+      top: 22px;
+      left: 100px;
+    }
   }
   .login-container {
     position: relative;
@@ -158,6 +165,7 @@
       margin: 0px auto 40px auto;
       text-align: center;
       color: #505458;
+      margin-left: 60px;
     }
     .remember {
       margin: 0px 0px 35px 0px;

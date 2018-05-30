@@ -63,9 +63,9 @@
         </el-table-column>
          <!-- <el-table-column prop="address" label="认证级别" width="160" align="center" >
                  </el-table-column> -->
-        <el-table-column prop="successMoney" label="提币数量" width="60" align="center">
+        <el-table-column prop="successMoney" label="提币数量" width="80" align="right" :formatter="namberFormatter">
         </el-table-column>
-        <el-table-column prop="successGas" label="区块手续费" width="60" align="center">
+        <el-table-column prop="successGas" label="区块手续费" width="80" align="right" :formatter="namberFormatter">
         </el-table-column>
         <el-table-column prop="auditType" label="打币方式" width="60"  align="center" :formatter="auditTypeFormatter">
         </el-table-column>
@@ -208,6 +208,9 @@
           }
         }
       },
+      namberFormatter(row, column, cellValue, index){
+        return cellValue.toFixed(8);
+      },
       auditTypeFormatter(row, column, cellValue, index){
         for(let item of this.auditTypes){
           if(item.value == cellValue){
@@ -229,7 +232,7 @@
         }
       },
       tableTimeFormatter(row, column, cellValue, index){
-        if(cellValue == 0){return cellValue;}
+        if(cellValue == 0){return '--';}
         let cellTime =new Date(parseInt(cellValue) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
@@ -272,6 +275,9 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.listData = data;
             this.listTotal = total;

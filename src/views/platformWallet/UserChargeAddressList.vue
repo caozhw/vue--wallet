@@ -54,7 +54,7 @@
     <!--列表-->
     <el-col :span="24" class="" style="padding-bottom: 0px;margin-top: 0;">
       <el-table :data="listData"  :fit="tableFit" highlight-current-row border   style="width: 100%;">
-        <el-table-column prop="uid" label="UID" width="80" align="center">
+        <el-table-column prop="uid" label="UID" width="80" align="center" :formatter="uidFormatter">
         </el-table-column>
         <el-table-column prop="walletType" label="币种" width="80"  align="center" :formatter="walletTypeFormatter">
         </el-table-column>
@@ -140,11 +140,11 @@
           },
           {
             value:0,
-            label:'已使用'//使用
+            label:'已启用'//使用
           },
           {
             value:1,
-            label:'未使用'//锁定
+            label:'未启用'//锁定
           }
         ],
         //walletTypeList:[],
@@ -199,6 +199,12 @@
           };
         }*/
       },
+      uidFormatter(row, column, cellValue, index){
+        if(cellValue == '0'){
+          return '--';
+        }
+        
+      },
       walletTypeFormatter(row, column, cellValue, index){
         for(let item of this.walletTypes){
           if(item.walletType == cellValue){
@@ -207,7 +213,7 @@
         }
       },
       tableTimeFormatter(row, column, cellValue, index){
-        if(cellValue == 0){return cellValue;}
+        if(cellValue == 0){return '--';}
         let cellTime =new Date(parseInt(cellValue) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
@@ -255,8 +261,12 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.listData = data;
+            console.log(this.listData)
             this.listTotal = total;
           }
           //console.log(res);

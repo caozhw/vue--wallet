@@ -20,8 +20,8 @@
         </el-col>
       </el-form-item>
       <!-- <el-checkbox v-model="checked" checked class="remember">记住密码</el-checkbox> -->
-      <el-form-item style="width:100%" label-width="0px">
-        <el-button type="primary" style="width:100%;" @click.native.prevent="handleLogin" :loading="logining">登录</el-button>
+      <el-form-item style="width:100%" label-width="0px">   
+        <el-button type="primary" style="width:100%;"   @click.native.prevent="handleLogin"  @keyup.native="keyupLogin($event)"    :loading="logining">登录</el-button>
         <!--<el-button @click.native.prevent="handleReset2">重置</el-button>-->
       </el-form-item>
     </el-form>
@@ -35,7 +35,7 @@
       return {
         logining: false,
         getCheckCodeBtn:'获取验证码',
-        seconds:600,
+        seconds:1000, 
         getCheckCodeDisabled:false,
         form: {
           api_method:'WalletAdminUserLogin',
@@ -71,7 +71,7 @@
       },*/
       handleGetCheckCode(ev){
         let _this = this;
-        let getCheckCode = {api_method:'WalletAdminUserGetCheckCode',phone:_this.form.phone};
+        let getCheckCode = {api_method:'WalletAdminUserGetCheckCode',phone:_this.form.phone,check_type:'TYPE_LOGIN'}; 
         requestApi(getCheckCode).then(response => {
           let { msg, status } = response;
           if (status !== '200') {
@@ -101,6 +101,11 @@
             },_this.seconds);
           }
         });
+      },
+      keyupLogin(ev) {
+        if(ev.keyCode==13){
+         this.handleLogin();
+        }
       },
       handleLogin(ev) {
         let _this = this;

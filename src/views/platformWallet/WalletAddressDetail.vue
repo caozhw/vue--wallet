@@ -40,7 +40,7 @@
           <el-table :data="walletTransInList"  border style="width: 100%">
             <el-table-column prop="uid" label="UID" width="" align="center">
             </el-table-column>
-            <el-table-column prop="successMoney" label="充币数量" width="" align="center">
+            <el-table-column prop="successMoney" label="充币数量" width="" align="right" :formatter="namberFormatter">
             </el-table-column>
             <el-table-column prop="transTime" label="充币时间" width="" align="center" :formatter="tableTimeFormatter">
             </el-table-column>
@@ -98,11 +98,11 @@
           },
           {
             value:0,
-            label:'已使用'//使用
+            label:'已启用'//使用
           },
           {
             value:1,
-            label:'未使用'//锁定
+            label:'未启用'//锁定
           }
         ],
       }
@@ -115,14 +115,17 @@
           }
         }
       },
+      namberFormatter(row, column, cellValue, index){
+        return cellValue.toFixed(8);
+      },
       timeFormatter(ct){
-        if(ct == 0){return ct;}
+        if(ct == 0){return '--';}
         let cellTime =new Date(parseInt(ct) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
       },
       tableTimeFormatter(row, column, cellValue, index){
-        if(cellValue == 0){return cellValue;}
+        if(cellValue == 0){return '--';}
         let cellTime =new Date(parseInt(cellValue) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
@@ -153,6 +156,9 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.$message({
               message: '保存成功',
@@ -176,6 +182,9 @@
                 message: msg,
                 type: 'error'
               });
+              if(status == '211'){
+                this.$router.push({ path: '/login'}); 
+              }
             }else{
               this.walletAddress = walletAddress;
               this.walletAddress.transLocked += '';

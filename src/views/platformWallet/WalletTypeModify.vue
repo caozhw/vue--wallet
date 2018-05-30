@@ -5,7 +5,7 @@
        <el-row class="detail-row">
         <el-col :span="4" class="detail-label">币种</el-col>
         <el-col :span="10" class="detail-value">
-          <el-input v-model="form.walletShortEn" clearable ></el-input>
+          <el-input v-model="form.walletShortEn" clearable disabled></el-input>
         </el-col>
        
       </el-row>
@@ -77,6 +77,9 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.$message({
               message: '设置成功',
@@ -100,6 +103,9 @@
                 message: msg,
                 type: 'error'
               });
+              if(status == '211'){
+                this.$router.push({ path: '/login'}); 
+              }
             }else{
               this.form.walletShortEn = data.walletShortEn;
               this.form.cash_min_number = data.cashMinNumber;

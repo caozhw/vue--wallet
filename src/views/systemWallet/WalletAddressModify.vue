@@ -25,7 +25,7 @@
           <el-col :span="2" class="detail-label">地址</el-col>
           <el-col :span="10" class="detail-value">{{detailData.walletAddress?detailData.walletAddress:'--'}}</el-col>
           <el-col :span="2" class="detail-label">可用币数</el-col>
-          <el-col :span="10" class="detail-value">{{detailData.userMoney?detailData.userMoney:'--'}}</el-col>
+          <el-col :span="10" class="detail-value">{{detailData.userMoney?namberFormatter(detailData.userMoney):'--'}}</el-col>
         </el-row>
         <el-row class="detail-row">
           <el-col :span="2" class="detail-label">启用状态</el-col>
@@ -123,6 +123,9 @@
           }
         }
       },
+       namberFormatter(value){
+        return value.toFixed(8);
+      },
        baseTypeFormatter(value){
         for(let item of this.baseTypes){
           if(item.value == value){
@@ -131,7 +134,7 @@
         }
       },
       timeFormatter(ct){
-        if(ct == 0){return ct;}
+        if(ct == 0){return '--';}
         let cellTime =new Date(parseInt(ct) * 1000);
         return util.formatDate.format(cellTime);
       },
@@ -154,6 +157,9 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.$message({
               message: '设置成功',
@@ -177,6 +183,9 @@
                 message: msg,
                 type: 'error'
               });
+              if(status == '211'){
+                this.$router.push({ path: '/login'}); 
+              }
             }else{
               this.detailData = walletAddress;
               this.form.trans_locked = walletAddress.transLocked+'';

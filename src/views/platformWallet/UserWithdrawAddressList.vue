@@ -49,7 +49,14 @@
         </el-table-column>
         <el-table-column prop="addtime" label="绑定时间" width="120" align="center" :formatter="tableTimeFormatter">
         </el-table-column>
-        <el-table-column prop="transLocked" label="启用状态" width="80" align="center" :formatter="transLockedFormatter">
+        <el-table-column  label="启用状态" width="160" align="center" >
+         <template  slot-scope="scope"> 
+            <span :style="{display: scope.row.id!=TableRadioId?'inline-block':'none'}">{{transLockedFormatter(scope.row.transLocked)}}</span>
+            <el-radio-group v-model="scope.row.transLocked" :style="{display: scope.row.id==TableRadioId?'block':'none'}" >
+              <el-radio :label="0" @change="transLockedChange(scope.row,0)">开启中</el-radio>
+              <el-radio :label="1" @change="transLockedChange(scope.row,1)">关闭</el-radio>
+            </el-radio-group>
+         </template>
         </el-table-column>
         <el-table-column label="操作" width="180" align="center">
          <!--  <template scope="scope" slot-scope="scope">
@@ -58,10 +65,10 @@
           <template  slot-scope="scope"> 
            <el-button size="small" @click="handleTableRadioShow(scope.$index, scope.row)" 
             :style="{display: scope.row.id!=TableRadioId?'inline-block':'none'}">设置状态</el-button> 
-            <el-radio-group v-model="scope.row.transLocked" :style="{display: scope.row.id==TableRadioId?'block':'none'}" >
-              <el-radio :label="0" @change="transLockedChange(scope.row,0)">开启用</el-radio>
-              <el-radio :label="1" @change="transLockedChange(scope.row,1)">关闭</el-radio>
-            </el-radio-group>
+            <el-button size="small" @click="handleTableRadioSave(scope.$index, scope.row)" 
+            :style="{display: scope.row.id==TableRadioId?'inline-block':'none'}">保存</el-button> 
+            <el-button size="small" @click="handleTableRadioConcel(scope.$index, scope.row)" 
+            :style="{display: scope.row.id==TableRadioId?'inline-block':'none'}">取消</el-button> 
           </template>
         </el-table-column>
       </el-table>
@@ -88,6 +95,8 @@
         dataRange:'',
         listTotal:0,//  列表数据总量
         TableRadioId:-1,
+        transLocked:0,
+        saveTransLocked:0,
         //查询集合
         form:{
           api_method:'WalletAddressBookList', 
@@ -125,13 +134,13 @@
             value:null,
             label:'全部'
           },
-          {
+         {
             value:0,
-            label:'已使用'//使用
+            label:'已启用'//使用
           },
           {
             value:1,
-            label:'未使用'//锁定
+            label:'未启用'//锁定
           }
         ],
 
@@ -149,22 +158,32 @@
       },
       //表格单选显示
       handleTableRadioShow(index,row){
+
          //console.log('index',index);
         this.TableRadioId = row.id;
+        this.saveTransLocked = row.transLocked;
       },
       //单选点击
       transLockedChange(row,v){
+        this.saveTransLocked = v;
+        //this.TableRadioId = v;
+      },
+      handleTableRadioSave(row,v){
         let _this = this;
-        let params = { api_method:'WalletAddressBookModify',id:row.id,trans_locked:v};
+        let params = { api_method:'WalletAddressBookModify',id:this.TableRadioId,trans_locked:this.saveTransLocked};
         this.$confirm('是否设置状态?', '设置状态', {
           //center: true
           //type: 'warning'
         }).then(() => {
-          _this.setTransLocked(row,params);
+          _this.setTransLocked(params);
         }).catch(() => {
         }); 
       },
-      setTransLocked(row,params){
+      handleTableRadioConcel(row,v){
+        this.TableRadioId = -1;
+        this.query();
+      },
+      setTransLocked(params){
         //let transLocked = row.transLocked;
         requestApi(params).then((res) => {
           console.log(res)
@@ -174,12 +193,16 @@
               message: msg,
               type: 'error'
             });
-            this.query();
+             if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.$message({
               message: msg,
-              type: 'success'
+              type: 'success' 
             });
+            this.query();
+            this.TableRadioId = -1;
            //row.transLocked = transLocked;
           }
         }).catch(() => {
@@ -201,12 +224,12 @@
         }
       },
       tableTimeFormatter(row, column, cellValue, index){
-        if(cellValue == 0){return cellValue;}
+        if(cellValue == 0){return '--';}
         let cellTime =new Date(parseInt(cellValue) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
       },
-      transLockedFormatter(row, column, cellValue, index){
+      transLockedFormatter(cellValue){
         for(let item of this.transLockeds){
           if(item.value == cellValue){
             return item.label;
@@ -239,6 +262,9 @@
               message: msg,
               type: 'error'
             });
+             if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.listData = data;
             this.listTotal = total;

@@ -59,11 +59,11 @@
         </el-table-column>
         <el-table-column prop="toAddress" label="转入账户" width="80" align="center">
         </el-table-column>
-        <el-table-column prop="useMoney" label="当前账户余额" width="80" align="center" v-if="form.biz_type==1">
+        <el-table-column prop="useMoney" label="当前账户余额" width="80" align="right" v-if="form.biz_type==1" :formatter="namberFormatter">
         </el-table-column>
-        <el-table-column prop="transMomey" label="转账数量" width="80" align="center" v-if="form.biz_type!=3">
+        <el-table-column prop="transMomey" label="转账数量" width="80" align="right" v-if="form.biz_type!=3" :formatter="namberFormatter">
         </el-table-column>
-         <el-table-column prop="transGas" label="转账手续费数量" width="80" align="center" v-if="form.biz_type==3">
+         <el-table-column prop="transGas" label="转账手续费数量" width="80" align="right" v-if="form.biz_type==3" :formatter="namberFormatter">
         </el-table-column>
         <el-table-column prop="transTime" label="到账时间" width="120" align="center" :formatter="tableTimeFormatter">
         </el-table-column>
@@ -149,8 +149,11 @@
           }
         }
       },
+      namberFormatter(row, column, cellValue, index){
+        return cellValue.toFixed(8);
+      },
       tableTimeFormatter(row, column, cellValue, index){
-        if(cellValue == 0){return cellValue;}
+        if(cellValue == 0){return '--';}
         let cellTime =new Date(parseInt(cellValue) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
@@ -189,6 +192,9 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.listData = data;
             this.listTotal = total;

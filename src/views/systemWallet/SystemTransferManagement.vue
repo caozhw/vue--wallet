@@ -71,7 +71,7 @@
         </el-table-column>
         <el-table-column prop="walletAddress" label="地址" width="200" align="center" >
         </el-table-column>
-        <el-table-column prop="userMoney" label="可用币数" width="60" align="center" >
+        <el-table-column prop="userMoney" label="可用币数" width="60" align="right" :formatter="namberFormatter">
         </el-table-column>
         <el-table-column prop="addtime" label="创建时间" width="120" align="center" :formatter="tableTimeFormatter">
         </el-table-column>
@@ -144,10 +144,10 @@
             value:null,
             label:'全部'
           },
-          {
+          /*{
             value:1,
             label:'系统'
-          },
+          },*/
           {
             value:2,
             label:'用户'
@@ -173,11 +173,11 @@
           },
           {
             value:0,
-            label:'已使用'//使用
+            label:'已启用'//使用
           },
           {
             value:1,
-            label:'未使用'//锁定
+            label:'未启用'//锁定
           }
         ],
         //列表
@@ -204,8 +204,11 @@
           }
         }
       },
+      namberFormatter(row, column, cellValue, index){
+        return cellValue.toFixed(8);
+      },
       tableTimeFormatter(row, column, cellValue, index){
-        if(cellValue == 0){return cellValue;}
+        if(cellValue == 0){return '--';}
         let cellTime =new Date(parseInt(cellValue) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
@@ -262,6 +265,9 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.listData = data;
             this.listTotal = total;

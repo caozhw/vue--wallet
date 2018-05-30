@@ -49,13 +49,13 @@
         </el-table-column>
         <el-table-column prop="transInNum" label="充币笔数" width="80" align="center">
         </el-table-column>
-        <el-table-column prop="transInMoney" label="充币数" width="80" align="center">
+        <el-table-column prop="transInMoney" label="充币数" width="80" align="right" :formatter="namberFormatter">
         </el-table-column>
         <el-table-column prop="transOutNum" label="提币笔数" width="80" align="center">
         </el-table-column>
-        <el-table-column prop="transOutMoney" label="提币数" width="80" align="center">
+        <el-table-column prop="transOutMoney" label="提币数" width="80" align="right" :formatter="namberFormatter">
         </el-table-column>
-        <el-table-column prop="gas" label="手续费" width="80" align="center">
+        <el-table-column prop="gas" label="提币手续费" width="80" align="right" :formatter="namberFormatter">
         </el-table-column>
 
       </el-table>
@@ -137,6 +137,9 @@
           }
         }
       },
+      namberFormatter(row, column, cellValue, index){
+        return cellValue.toFixed(8);
+      },
       //查询
       handleQuery(form){
         this.$refs[form].validate((valid) => {
@@ -166,6 +169,9 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.listData = data;
             this.listTotal = total;

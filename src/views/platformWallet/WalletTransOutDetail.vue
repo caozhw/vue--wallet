@@ -22,9 +22,9 @@
       </el-row>
       <el-row class="detail-row">
         <el-col :span="2" class="detail-label">提币数量</el-col>
-        <el-col :span="10" class="detail-value">{{datailData.successMoney}}</el-col>
+        <el-col :span="10" class="detail-value">{{namberFormatter(datailData.successMoney)}}</el-col>
         <el-col :span="2" class="detail-label">区块手续费</el-col>
-        <el-col :span="10" class="detail-value">{{datailData.successGas}}</el-col>
+        <el-col :span="10" class="detail-value">{{namberFormatter(datailData.successGas)}}</el-col>
       </el-row>
       <el-row class="detail-row">
         <el-col :span="2" class="detail-label">平台审核人</el-col>
@@ -121,13 +121,13 @@
             value:null,
             label:'全部'
           },
-          {
+         {
             value:0,
-            label:'已使用'//使用
+            label:'已启用'//使用
           },
           {
             value:1,
-            label:'未使用'//锁定
+            label:'未启用'//锁定
           }
         ],
       }
@@ -140,8 +140,11 @@
           }
         }
       },
+      namberFormatter(value){
+        return value.toFixed(8);
+      },
       timeFormatter(ct){
-        if(ct == 0){return ct;}
+        if(ct == 0){return '--';}
         let cellTime =new Date(parseInt(ct) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
@@ -176,6 +179,9 @@
                 message: msg,
                 type: 'error'
               });
+              if(status == '211'){
+                this.$router.push({ path: '/login'}); 
+              }
             }else{
               this.datailData = data;
               this.datailData.transLocked += '';

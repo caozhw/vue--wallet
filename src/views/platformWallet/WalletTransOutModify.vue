@@ -134,11 +134,11 @@
           },
           {
             value:0,
-            label:'已使用'//使用
+            label:'已启用'//使用
           },
           {
             value:1,
-            label:'未使用'//锁定
+            label:'未启用'//锁定
           }
         ],
         //账户类型 
@@ -179,7 +179,7 @@
         }
       },
       timeFormatter(ct){
-        if(ct == 0){return ct;}
+        if(ct == 0){return '--';}
         let cellTime =new Date(parseInt(ct) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
@@ -213,6 +213,9 @@
                 message: msg,
                 type: 'error'
               });
+              if(status == '211'){
+                this.$router.push({ path: '/login'}); 
+              }
             }else{
               this.$message({
                 message: '审核成功',
@@ -234,6 +237,9 @@
                 message: msg,
                 type: 'error'
               });
+              if(status == '211'){
+                this.$router.push({ path: '/login'}); 
+              }
             }else{
               this.datailData = data;
               this.datailData.transLocked += '';

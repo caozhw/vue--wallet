@@ -8,7 +8,7 @@
           <el-table :data="listData_1"  border style="width: 100%">
             <el-table-column prop="wallet_type" label="币种" width="" align="center" :formatter="walletTypeFormatter">
             </el-table-column>
-            <el-table-column prop="avgMoney" label="七日提现平均数" width="" align="center">
+            <el-table-column prop="avgMoney" label="七日提现平均数" width="" align="right"  :formatter="namberFormatter">
             </el-table-column>
             <el-table-column label="预存天数" width="" align="center">
                <template  slot-scope="scope"> 
@@ -17,11 +17,11 @@
                 </el-input>
                </template>
             </el-table-column>
-             <el-table-column prop="refMoney" label="参考提币预留数量" width="" align="center">
+             <el-table-column prop="refMoney" label="参考提币预留数量" width="" align="right"  :formatter="namberFormatter">
             </el-table-column>
-             <el-table-column prop="sumUseMoney" label="提币余额" width="" align="center">
+             <el-table-column prop="sumUseMoney" label="提币余额" width="" align="right"  :formatter="namberFormatter">
             </el-table-column>
-             <el-table-column prop="diffMoney" label="提币差额" width="" align="center">
+             <el-table-column prop="diffMoney" label="提币差额" width="" align="right"  :formatter="namberFormatter">
             </el-table-column>
             <el-table-column label="操作" width="180" align="center">
               <template  slot-scope="scope"> 
@@ -73,12 +73,12 @@
           <el-table-column prop="wallet_short_en" label="币种" width="" align="center">
           </el-table-column>
           <template v-for="(item,index) in table_2_days">
-             <el-table-column :prop="item" :label="item" width="" align="center">
+             <el-table-column :prop="item" :label="item" width="" align="center" :formatter="tableDataFormatter">
              </el-table-column>
           </template>
-          <el-table-column prop="sumMoney" label="7日总提币" width="" align="center">
+          <el-table-column prop="sumMoney" label="7日总提币" width="" align="right"  :formatter="namberFormatter">
           </el-table-column>
-          <el-table-column prop="avgMoney" label="平均提币" width="" align="center">
+          <el-table-column prop="avgMoney" label="平均提币" width="" align="right"  :formatter="namberFormatter">
           </el-table-column>
         </el-table>
       </el-col> 
@@ -101,14 +101,14 @@
   export default{
     data:function(){
       return{
-        tableFit:false,
+        tableFit:false, 
         labelPosition:'left',
         dataRange:'',
         listTotal_1:0,
         listTotal_2:2,
         TableRowId:-1,
         form_1:{
-          api_method:'WalletTransSettingsList',//系统转账设置列表
+          api_method:'WalletTransSettingsList',//系统转账设置列表    
           page_number:1,
           page_size:10
         },
@@ -153,6 +153,22 @@
           if(item.walletType == cellValue){
             return item.walletShortEn;
           }
+        }
+      },
+      namberFormatter(row, column, cellValue, index){
+        if(cellValue){
+           return cellValue.toFixed(8);
+         }else{
+          return '--'
+         }
+       
+      },
+      tableDataFormatter(row, column, cellValue, index){
+        console.log(cellValue)
+        if(cellValue || cellValue!=0){
+          return cellValue;
+        }else{
+          return '--';
         }
       },
       
@@ -216,6 +232,9 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.listData_1 = data;
             this.listTotal_1 = total;

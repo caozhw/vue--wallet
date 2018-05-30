@@ -72,11 +72,11 @@
         </el-table-column>
         <el-table-column prop="to_address_id" label="转入账户" width="80" align="center" :formatter="baseTypeTableFormatter">
         </el-table-column>
-        <el-table-column prop="c" label="转账笔数" width="80" align="center"> 
+        <el-table-column prop="c" label="转账笔数" width="80" align="right" :formatter="namberFormatter"> 
         </el-table-column>
-        <el-table-column prop="sumSuccessMoney" label="转账总数" width="80" align="center">
+        <el-table-column prop="sumSuccessMoney" label="转账总数" width="80"  align="right" :formatter="namberFormatter">
         </el-table-column>
-        <el-table-column prop="sumSuccessGas" label="转账手续费" width="80" align="center">
+        <el-table-column prop="sumSuccessGas" label="转账手续费" width="80"  align="right" :formatter="namberFormatter">
         </el-table-column>
       </el-table>
     </el-col>
@@ -190,6 +190,9 @@
           }
         }
       },
+      namberFormatter(row, column, cellValue, index){
+        return cellValue.toFixed(8);
+      },
       //select
       SelectFormatter(){
         let arr = [];
@@ -250,6 +253,9 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.listData = data;
             this.listTotal = total;

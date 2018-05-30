@@ -44,6 +44,8 @@
     <el-col :span="24" class="" style="padding-bottom: 0px;margin-top: 0;">
       <el-table :data="listData"  :fit="tableFit" highlight-current-row border   style="width: 100%;">
        <el-table-column prop="walletShortEn" label="币种" width="80"  align="center" >
+        </el-table-column> 
+         <el-table-column prop="cashMinNumber" label="最小提币数量" width="120"  align="right" :formatter="namberFormatter">
         </el-table-column>
         <el-table-column prop="addtime" label="创建时间" width="120" align="center" :formatter="tableTimeFormatter">
         </el-table-column>
@@ -120,11 +122,11 @@
           },
           {
             value:0,
-            label:'已使用'//使用
+            label:'已启用'//使用
           },
           {
             value:1,
-            label:'未使用'//锁定
+            label:'未启用'//锁定
           }
         ],
         
@@ -152,8 +154,11 @@
           }
         }
       },
+      namberFormatter(row, column, cellValue, index){
+        return cellValue.toFixed(8); 
+      },
       tableTimeFormatter(row, column, cellValue, index){
-        if(cellValue == 0){return cellValue;}
+        if(cellValue == 0){return '--';}
         let cellTime =new Date(parseInt(cellValue) * 1000);
         return util.formatDate.format(cellTime);
         //return cellValue
@@ -191,7 +196,8 @@
         this.query();
         //this.getUsers();
       },
-      query(){
+      query(){ 
+        this.form.wallet_short_en = this.form.wallet_short_en == '全部'?'':this.form.wallet_short_en;
         requestApi(this.form).then((res) => {
           let {data,total,msg,status} = res;
           if(status !== '200'){
@@ -199,11 +205,15 @@
               message: msg,
               type: 'error'
             });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
           }else{
             this.listData = data;
             this.listTotal = total;
+            console.log(this.listData[0].cashMinNumber);   
           }
-          //console.log(res);
+          
         }).catch(() => {
         });
       },

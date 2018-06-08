@@ -23,6 +23,13 @@ import WalletAddressModify from './views/systemWallet/WalletAddressModify.vue'
 import WalletTransSettingsList from './views/systemWallet/WalletTransSettingsList.vue'
 import WalletTransOutPlatStat from './views/systemWallet/WalletTransOutPlatStat.vue'
 
+//对账管理
+import WalletCheckInOutStat from './views/WalletCheck/WalletCheckInOutStat.vue'
+import WalletCheckInList from './views/WalletCheck/WalletCheckInList.vue'
+import WalletCheckOutList from './views/WalletCheck/WalletCheckOutList.vue'
+import WalletCheckAddressStat from './views/WalletCheck/WalletCheckAddressStat.vue'
+import WalletCheckAddressList from './views/WalletCheck/WalletCheckAddressList.vue'
+
 
 let routes = [
     {
@@ -75,16 +82,20 @@ let routes = [
            
         ]
     },
-    /*{
+    {
         path: '/',
         component: Home,
         name: '对账管理',
-        iconCls: '',//图标样式class
+        iconCls: '',//图标样式class  
         children: [
-           //{ path: '/', component: , name: ''},
+            { path: '/WalletCheckInOutStat', component: WalletCheckInOutStat, name: '交易平台对账'},
+            { path: '/WalletCheckInList', component: WalletCheckInList, name: '充币对账详情',hidden: true},
+            { path: '/WalletCheckOutList', component: WalletCheckOutList, name: '提币对账详情',hidden: true},
+            { path: '/WalletCheckAddressStat', component: WalletCheckAddressStat, name: '区块链对账'},
+            { path: '/WalletCheckAddressList', component: WalletCheckAddressList, name: '区块链余额对账详情',hidden: true},
         ]
     },
-    {
+    /*{
         path: '/',
         component: Home,
         name: '系统管理',

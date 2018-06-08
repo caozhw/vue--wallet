@@ -165,7 +165,7 @@
       },
       tableDataFormatter(row, column, cellValue, index){
         console.log(cellValue)
-        if(cellValue || cellValue!=0){
+        if(cellValue || cellValue!= 0){
           return cellValue;
         }else{
           return '--';

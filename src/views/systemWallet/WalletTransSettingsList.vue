@@ -26,7 +26,7 @@
             <el-table-column label="操作" width="180" align="center">
               <template  slot-scope="scope"> 
                 <el-button size="small" @click="handleTableEdit(scope.$index, scope.row)" 
-                :style="{display: scope.row.id!=TableRowId?'inline-block':'none'}">修改</el-button> 
+                :style="{display: scope.row.id!=TableRowId?'inline-block':'none'}" :disabled="roleId==3">修改</el-button> 
                  <el-button size="small" @click="handleTableSave(scope.$index, scope.row)" 
                 :style="{display: scope.row.id==TableRowId?'inline-block':'none'}">保存</el-button> 
                  <el-button size="small" @click="handleTableConcel(scope.$index, scope.row)" 
@@ -101,6 +101,8 @@
   export default{
     data:function(){
       return{
+        roleId:null,
+
         tableFit:false, 
         labelPosition:'left',
         dataRange:'',
@@ -264,6 +266,7 @@
       //提现预警表
       //查询 
       handleQuery_2(form){
+        this.form_2.page_number = 1;
         this.$refs[form].validate((valid) => {
           if (valid) {
            this.query_2();   
@@ -283,6 +286,7 @@
     },
 
     mounted(){
+       this.roleId = sessionStorage.getItem('BITKER_ROLE_ID');
       this.query_1();
       this.query_2();
       this.setwalletTypeList(); 

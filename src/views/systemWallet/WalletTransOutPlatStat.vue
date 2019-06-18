@@ -226,6 +226,7 @@
 
       //查询
       handleQuery(form){
+        this.form.page_number = 1;
         this.$refs[form].validate((valid) => {
           if (valid) {
            this.query();   

@@ -51,9 +51,11 @@
         </el-table-column>
         <el-table-column prop="transLocked" label="启用状态" width="80" align="center" :formatter="transLockedFormatter">
         </el-table-column>
+        <el-table-column prop="autoAuditThreshold" label="自动审核数量" width="80" align="center" :formatter="namberFormatter">
+        </el-table-column>
         <el-table-column label="操作" width="80" align="center">
           <template  slot-scope="scope">
-            <el-button size="small" @click="handleEditClick(scope.$index, scope.row)">设置</el-button>
+            <el-button size="small" @click="handleEditClick(scope.$index, scope.row)" :disabled="roleId==3">设置</el-button>
           </template>
         </el-table-column>
 
@@ -76,6 +78,7 @@
   export default{
     data:function(){
       return{
+        roleId:null,
         tableFit:false,
         labelPosition:'left',
         dataRange:'',
@@ -135,6 +138,7 @@
       }
     },
     mounted(){
+      this.roleId = sessionStorage.getItem('BITKER_ROLE_ID');
       this.query();
       this.setwalletTypeList();
     },
@@ -180,6 +184,7 @@
       },
       //查询
       handleQuery(form){
+        this.form.page_number = 1;
         this.$refs[form].validate((valid) => {
           if (valid) {
            this.query();   

@@ -3,12 +3,6 @@
     <!--工具条-->
     <el-form :model="form" ref="form"  :inline="true"  :label-position="labelPosition" label-width="80px" >
       <el-col :span="24" class="toolbar" style="padding-bottom: 0px;margin-bottom: 0;min-width:1080px">
-        <el-form-item label="订单号" >
-          <el-input v-model="form.trans_id" clearable  placeholder="订单号"></el-input>
-        </el-form-item>
-        <el-form-item label="UID" >
-          <el-input v-model="form.uid" clearable  placeholder="UID"></el-input>
-        </el-form-item>
         <el-form-item label="币种">
           <el-select v-model="form.wallet_type" placeholder="请选择">
             <el-option
@@ -19,48 +13,29 @@
             </el-option>
           </el-select>
         </el-form-item>
-         
-      </el-col>
-      <el-col :span="24" class="toolbar" style="padding-bottom: 0px;margin-top: 0;">
-        <el-form-item label="地址">
-          <el-input v-model="form.address" clearable placeholder="充币地址"></el-input>
-        </el-form-item>
-        <el-form-item label="到账时间">
-          <el-date-picker
-            v-model="dataRange"
-            type="daterange"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            value-format="timestamp"
-            @change="selectDate"
-          >
-        </el-date-picker>
-        </el-form-item>
+
         <el-form-item>
           <el-button type="primary" @click="handleQuery('form')">查询</el-button>
-          <el-button type="primary" @click="handleExportClick()">导出</el-button>
         </el-form-item>
+       
       </el-col>
     </el-form>
 
+    <el-col :span="24" class="" style="padding-bottom: 0px;margin-top: 20px;">
+      <template >
+        <el-tabs v-model="biz_type" type="card">
+          <el-tab-pane label="余额查询列表"  name="0"></el-tab-pane>
+        </el-tabs>
+        <el-button class='export_btn' type="primary" @click="handleExportClick()">导出</el-button>
+      </template>
+    </el-col>
     <!--列表 fromBookAddress-->
     <el-col :span="24" class="" style="padding-bottom: 0px;margin-top: 0;">
-      <el-table :data="listData"  :fit="tableFit" highlight-current-row border   style="width: 100%;">
-        <el-table-column prop="txId" label="订单号" width="200" align="center">
+      <el-table :data="listData"   v-if="biz_type == 0"  :fit="tableFit" highlight-current-row border   style="width: 100%;" >
+        <el-table-column prop="walletType" label="币种" width="80"  align="center" :formatter="walletTypeFormatter">
         </el-table-column>
-        <el-table-column prop="uid" label="UID" width="40" align="center">
+        <el-table-column prop="balanceSum" label="余额数量"  width="80" align="right" :formatter="namberFormatter">
         </el-table-column>
-        <el-table-column prop="walletType" label="币种" width="40"  align="center" :formatter="walletTypeFormatter">
-        </el-table-column>
-        <el-table-column prop="fromBookAddress" label="充币来源地址" width="200" align="center">
-        </el-table-column>
-        <el-table-column prop="address" label="平台钱包" width="200" align="center" >
-        </el-table-column>
-        <el-table-column prop="successMoney" label="充币数量" width="60" align="right" :formatter="namberFormatter">
-        </el-table-column>
-        <el-table-column prop="transTime" label="到账时间" width="120" align="center" :formatter="tableTimeFormatter">
-        </el-table-column>
-        
       </el-table>
     </el-col>
     <!--分页 :page-size="10"  :page-sizes="[10, 20, 30, 40]"-->
@@ -84,22 +59,18 @@
         labelPosition:'left',
         dataRange:'',
         listTotal:0,//  列表数据总量
+        biz_type:'0',//0充币对账 1提币对账
         exportNumber:10,
         //查询集合
         form:{
-          uid:'',
-          api_method:'WalletTransInList',
-          trans_id:null,//交易id 订单号 
-          address:null,
+          api_method:'WalletBalanceStat',//充币对账   WalletCheckOutStat提币对账
           wallet_type:null, //币种 钱包类型
-          trans_time_begin:null,//开始时间
-          trans_time_end:null,//结束时间
           page_number:1,//表格当前页
           page_size:10
         },
         //币种 钱包类型 选择器数据
         walletTypes:[
-          /*{
+         /* {
             walletType:null,
             walletShortEn:'全部'
           },
@@ -116,21 +87,38 @@
             walletShortEn:'USDT'
           } */
         ],
-        //启用状态  选择器数据
-        transLockeds:[
+        //审核状态  选择器数据
+        auditStatus:[
           {
             value:null,
             label:'全部'
           },
           {
-            value:0,
-            label:'已启用'//使用
+            value:2,
+            label:'已审核'
           },
           {
             value:1,
-            label:'未启用'//锁定
+            label:'未审核'
           }
         ],
+        //对账状态  选择器数据
+        statusList:[
+          {
+            value:null,
+            label:'全部'
+          },
+          {
+            value:2,
+            label:'已对账'
+          },
+          {
+            value:1,
+            label:'未对账'
+          }
+        ],
+
+        
 
         //列表
         listData:[]
@@ -144,8 +132,8 @@
       //选择时间范围
       selectDate(dateRange){
         let dr = {
-          trans_time_begin:dateRange?dateRange[0]/1000:null,
-          trans_time_end:dateRange?dateRange[1]/1000:null
+          check_time_begin:dateRange?dateRange[0]/1000:null,
+          check_time_end:dateRange?dateRange[1]/1000:null
         };
         Object.assign(this.form,dr);
       },
@@ -157,16 +145,21 @@
         }
       },
       namberFormatter(row, column, cellValue, index){
-        return cellValue.toFixed(8);
+        if(cellValue || cellValue == 0){
+          return cellValue.toFixed(8);
+        }else{
+          return cellValue;
+        }
       },
-      tableTimeFormatter(row, column, cellValue, index){
-       if(cellValue == 0){return '--';}
-        let cellTime =new Date(parseInt(cellValue) * 1000);
-        return util.formatDate.format(cellTime);
-        //return cellValue
+      statusFormatter(row, column, cellValue, index){//对账状态
+        for(let item of this.statusList){
+          if(item.value == cellValue){
+            return item.label;
+          }
+        }
       },
-      transLockedFormatter(row, column, cellValue, index){
-        for(let item of this.transLockeds){
+      auditStatusFormatter(row, column, cellValue, index){//审核状态
+        for(let item of this.auditStatus){
           if(item.value == cellValue){
             return item.label;
           }
@@ -232,12 +225,12 @@
       },
       export(){
         let params = this.form;
-        params.api_method = 'WalletTransInListExp';
+        params.api_method = 'WalletBalanceStatExp';
         params.page_number = 1;
         params.page_size = this.exportNumber;
         exportApi(params).then((res) => {
          if(res){
-            this.form.api_method = 'WalletTransInList'; 
+            this.form.api_method = 'WalletBalanceStat'; 
             this.$message({
               message: '导出成功',
               type: 'success'
@@ -254,12 +247,12 @@
         }).catch(() => {
         });
       },
-      //设置系统钱包列表 热钱包
+       //设置系统钱包列表 热钱包
       setwalletTypeList(){ 
         let walletTypeList = sessionStorage.getItem('WalletTypeList');
         this.walletTypes = JSON.parse(walletTypeList);
         this.walletTypes.unshift({walletType:null,walletShortEn:'全部'});
-      } 
+      },
     }
   }
 </script>
@@ -284,6 +277,13 @@
 }
 .el-table__body, .el-table__footer, .el-table__header {
      table-layout: initial; 
+}
+.el-tabs{
+  width: 92%;
+  float: left;
+}
+.export_btn{
+  float: left;
 }
 
 </style>

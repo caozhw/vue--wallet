@@ -64,7 +64,7 @@
          </template> -->
           <template  slot-scope="scope"> 
            <el-button size="small" @click="handleTableRadioShow(scope.$index, scope.row)" 
-            :style="{display: scope.row.id!=TableRadioId?'inline-block':'none'}">设置状态</el-button> 
+            :style="{display: scope.row.id!=TableRadioId?'inline-block':'none'}" :disabled="roleId==3">设置状态</el-button> 
             <el-button size="small" @click="handleTableRadioSave(scope.$index, scope.row)" 
             :style="{display: scope.row.id==TableRadioId?'inline-block':'none'}">保存</el-button> 
             <el-button size="small" @click="handleTableRadioConcel(scope.$index, scope.row)" 
@@ -90,6 +90,7 @@
   export default{
     data:function(){
       return{
+        roleId:null,
         tableFit:false,
         labelPosition:'left',
         dataRange:'',
@@ -149,6 +150,7 @@
       }
     },
     mounted(){
+      this.roleId = sessionStorage.getItem('BITKER_ROLE_ID');
       this.query();
       this.setwalletTypeList(); 
     },
@@ -238,6 +240,7 @@
       },
       //查询
       handleQuery(form){
+        this.form.page_number = 1;
         this.$refs[form].validate((valid) => {
           if (valid) {
            this.query();   

@@ -46,6 +46,7 @@
        
         <el-form-item>
           <el-button type="primary" @click="handleQuery('form')">查询</el-button>
+          <el-button type="primary" @click="handleExportClick()">导出</el-button>
         </el-form-item>
       </el-col>
     </el-form>
@@ -53,7 +54,7 @@
     <el-col :span="22" class="" style="padding-bottom: 0px;margin-top: 20px;">
       <template>
         <el-tabs v-model="biz_type" type="card">
-          <el-tab-pane label="热钱包列表"  name="1"></el-tab-pane>
+          <el-tab-pane label="系统钱包管理"  name="1"></el-tab-pane>
         </el-tabs>
       </template>
     </el-col>
@@ -77,9 +78,10 @@
         </el-table-column>
          <el-table-column prop="transLocked" label="启用状态" width="60"  align="center" :formatter="transLockedFormatter">
         </el-table-column>
-         <el-table-column label="操作" width="80" align="center">
+         <el-table-column label="操作" width="140" align="center">
           <template  slot-scope="scope">
-            <el-button size="small" @click="handleDetailClick(scope.$index, scope.row)">修改</el-button>
+            <el-button size="small" @click="handleDetailClick(scope.$index, scope.row)" :disabled="roleId==3">修改</el-button>
+            <el-button size="small" @click="handlePutInClick(scope.$index, scope.row)" :disabled="roleId==3">从冷钱包转入</el-button>
           </template>
         </el-table-column>
 
@@ -94,18 +96,32 @@
         :total="listTotal">
       </el-pagination>  
     </el-col>
+    <el-dialog title="二维码" :visible.sync="dialogEwmVisible">
+      <p>{{imgMsg}}</p>
+      <div id="qrcode"></div>
+
+      <!-- <img :src="ewmImg" class="ewm-img" /> -->
+    </el-dialog>
   </section>
 </template>
 <script>
-  import { requestApi } from '../../api/axios.js';
+  import QRCode from 'qrcodejs2'
+  import { requestApi ,exportApi} from '../../api/axios.js';
   import util from '../../util.js';
   export default{
+    components:{
+      QRCode:QRCode
+    },
     data:function(){
       return{
+        roleId:null,
         tableFit:false,
         labelPosition:'left',
+        dialogEwmVisible:false, 
+        imgMsg:'',
         dataRange:'',
         listTotal:0,//  列表数据总量
+        exportNumber:10,
         biz_type:'1',
         //查询集合
         form:{
@@ -144,14 +160,14 @@
             value:null,
             label:'全部'
           },
-          /*{
+          {
             value:1,
             label:'系统'
-          },*/
-          {
+          },
+         /* {
             value:2,
             label:'用户'
-          },
+          },*/
           {
             value:3,
             label:'冷钱包'
@@ -184,11 +200,27 @@
         listData:[]
       }
     },
+    create(){
+    },
     mounted(){
+      this.roleId = sessionStorage.getItem('BITKER_ROLE_ID');
       this.query();
       this.setwalletTypeList();
+
     },
     methods: {
+      //二维码
+      qrcodes(msg) {
+        let qrcoder = new QRCode('qrcode', {
+          width: 200,
+          height: 200, // 高度
+          text: msg // 二维码内容
+          // render: 'canvas' // 设置渲染方式（有两种方式 table和canvas，默认是canvas）
+          // background: '#f0f'
+          // foreground: '#ff0'
+        })
+        console.log('qrcoder',qrcoder)
+      },
       //选择时间范围
       selectDate(dateRange){
         let dr = {
@@ -231,6 +263,7 @@
       },
       //查询
       handleQuery(form){
+        this.form.page_number = 1;
         this.$refs[form].validate((valid) => {
           if (valid) {
            this.query();   
@@ -256,6 +289,45 @@
         //console.log('row',row.id);
         this.$router.push({ path: '/WalletAddressModify', query: { id: row.id } });
       },
+      //从冷钱包转入
+      handlePutInClick(index,row){
+        let params = {
+          api_method:'WalletAddressDecode',
+          uid:row.uid,
+          wallet_type:row.walletType,
+          wallet_address:row.walletAddress,
+        }
+        this.WalletAddressDecode(params);
+      },
+      WalletAddressDecode(params = {api_method:'WalletAddressDecode',uid:-1,wallet_type:1,wallet_address:''}){
+        requestApi(params).then((res) => {
+          let {data,msg,status} = res;
+          if(status !== '200'){
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            }
+          }else{
+            //alert(firstEwm)
+    
+            this.dialogEwmVisible = true;
+
+            document.getElementById('qrcode').innerHTML = "";
+             //this.$nextTick(() => {
+            this.qrcodes(msg); 
+            this.imgMsg = msg;
+             //})
+            //this.qrcodes(msg);
+            //this.ewmImg = 'data:image/png;base64,' + msg
+          }
+          //console.log(res);
+        }).catch(() => {
+        });
+
+      },
       query(){
         //this.form.biz_type = parseInt(this.form.biz_type);
         requestApi(this.form).then((res) => {
@@ -276,6 +348,50 @@
         }).catch(() => {
         });
       },
+      handleExportClick(){//导出
+         this.$prompt('请输入导出数据的条数', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /^[0-9]*$/,
+          inputErrorMessage: '数字格式不正确'
+        }).then(({ value }) => {
+          this.exportNumber = value;
+          this.export();
+          /*this.$message({
+            type: 'success',
+            message: '导出的条数是: ' + value
+          });*/
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '取消导出'
+          });       
+        });
+      },
+      export(){
+        let params = this.form;
+        params.api_method = 'WalletAddressListByPlatExp';
+        params.page_number = 1;
+        params.page_size = this.exportNumber;
+        exportApi(params).then((res) => {
+         if(res){
+            this.form.api_method = 'WalletAddressListByPlat'; 
+            this.$message({
+              message: '导出成功',
+              type: 'success'
+            });
+          }else{
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            } 
+          }
+        }).catch(() => {
+        });
+      },
        //设置系统钱包列表 热钱包
       setwalletTypeList(){ 
         let walletTypeList = sessionStorage.getItem('WalletTypeList');
@@ -287,6 +403,10 @@
 </script>
 
 <style>
+.ewm-img{
+  width: 200px;
+  height: 200px;
+}
 .el-table table{
   width:100% !important;
   table-layout: initial; 
@@ -307,5 +427,14 @@
 .el-table__body, .el-table__footer, .el-table__header {
      table-layout: initial; 
 }
+.el-dialog__body{
+  text-align: center;
+}
 
+.el-dialog {
+  width: 30%;
+}
+#qrcode img{
+  margin: 0 auto;
+}
 </style>

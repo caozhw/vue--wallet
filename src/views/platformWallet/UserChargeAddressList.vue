@@ -36,9 +36,9 @@
           <el-input v-model="form.wallet_address" clearable placeholder="地址"></el-input>
         </el-form-item>
         <el-form-item label="启用状态">
-          <el-select v-model="form.trans_locked" placeholder="全部">
+          <el-select v-model="form.status" placeholder="全部">
             <el-option
-              v-for="item in transLockeds"
+              v-for="item in statuss"
               :key="item.value"
               :label="item.label"
               :value="item.value">
@@ -47,6 +47,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery('form')">查询</el-button>
+          <el-button type="primary" @click="handleExportClick()">导出</el-button>
         </el-form-item>
       </el-col>
     </el-form>
@@ -60,11 +61,13 @@
         </el-table-column>
         <el-table-column prop="walletAddress" label="充币地址" width="360" align="center">
         </el-table-column>
+        <el-table-column prop="balance" label="钱包余额数量" width="80" align="right" :formatter="namberFormatter">
+        </el-table-column>
         <el-table-column prop="addtime" label="生成时间" width="120" align="center" :formatter="tableTimeFormatter">
         </el-table-column>
         <el-table-column prop="bindTime" label="绑定时间" width="120" align="center" :formatter="tableTimeFormatter">
         </el-table-column>
-        <el-table-column prop="transLocked" label="启用状态" width="80" align="center" :formatter="transLockedFormatter">
+        <el-table-column prop="status" label="启用状态" width="80" align="center" :formatter="statusFormatter">
         </el-table-column>
         <el-table-column label="操作" width="80" align="center">
           <template  slot-scope="scope">
@@ -92,7 +95,7 @@
   </section>
 </template>
 <script>
-  import { requestApi } from '../../api/axios.js';
+  import { requestApi ,exportApi} from '../../api/axios.js';
   import util from '../../util.js';
   export default{
     data:function(){
@@ -101,13 +104,14 @@
         labelPosition:'left',
         dataRange:'',
         listTotal:0,//  列表数据总量
+        exportNumber:10,
         //查询集合
         form:{
           api_method:'WalletAddressList', 
           uid:null,//用户id
           wallet_address:null,
           wallet_type:null, //币种 钱包类型
-          trans_locked:null,//启用状态
+          status:null,//启用状态
           bind_time_begin:null,//开始时间
           bind_time_end:null,//结束时间
           page_number:1,//表格当前页
@@ -133,7 +137,7 @@
           } */
         ],
         //启用状态  选择器数据
-        transLockeds:[
+        statuss:[
           {
             value:null,
             label:'全部'
@@ -202,6 +206,8 @@
       uidFormatter(row, column, cellValue, index){
         if(cellValue == '0'){
           return '--';
+        }else{
+          return cellValue;
         }
         
       },
@@ -218,11 +224,18 @@
         return util.formatDate.format(cellTime);
         //return cellValue
       },
-      transLockedFormatter(row, column, cellValue, index){
-        for(let item of this.transLockeds){
+      statusFormatter(row, column, cellValue, index){
+        for(let item of this.statuss){
           if(item.value == cellValue){
             return item.label;
           }
+        }
+      },
+      namberFormatter(row, column, cellValue, index){
+        if(cellValue){
+          return cellValue.toFixed(8);
+        }else{
+          return cellValue;
         }
       },
       //查询
@@ -278,6 +291,50 @@
         let walletTypeList = sessionStorage.getItem('WalletTypeList');
         this.walletTypes = JSON.parse(walletTypeList);
         this.walletTypes.unshift({walletType:null,walletShortEn:'全部'});
+      },
+      handleExportClick(){//导出
+         this.$prompt('请输入导出数据的条数', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /^[0-9]*$/,
+          inputErrorMessage: '数字格式不正确'
+        }).then(({ value }) => {
+          this.exportNumber = value;
+          this.export();
+          /*this.$message({
+            type: 'success',
+            message: '导出的条数是: ' + value
+          });*/
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '取消导出'
+          });       
+        });
+      },
+      export(){
+        let params = this.form;
+        params.api_method = 'WalletAddressListExp';
+        params.page_number = 1;
+        params.page_size = this.exportNumber;
+        exportApi(params).then((res) => {
+         if(res){
+          this.form.api_method = 'WalletAddressList'; 
+            this.$message({
+              message: '导出成功',
+              type: 'success'
+            });
+          }else{
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            } 
+          }
+        }).catch(() => {
+        });
       }
     }
   }

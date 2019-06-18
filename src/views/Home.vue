@@ -7,14 +7,14 @@
        <img class="logo" src="../assets/100.png" style="min-width:140px;">  
      </el-col>
      <el-col :span="12">
-      <el-menu default-active=""  class="el-menu-demo" mode="horizontal" @select="" style="background-color: rgba(0,0,0,0);color:#fff;">
+      <el-menu default-active=""  class="el-menu-demo" mode="horizontal" @select="" style="background-color: rgba(0,0,0,0);color:#fff;min-width: 780px;">
         <template v-for="(item,index) in $router.options.routes">
-          <el-menu-item :index="index+''"  :class="{'is-active': item.name == $route.matched[0].name}" @click="handleClickFirstMemu" >{{item.name}}</el-menu-item> 
+          <el-menu-item :index="index+''"  :class="{'is-active': item.name == $route.matched[0].name}" @click="handleClickFirstMemu" :disabled="showAdmMag(item.name)">{{item.name}}</el-menu-item> 
         </template>
       </el-menu>
      </el-col>
      <el-col :span="6" :offset="3" class="user-info">
-       <span>欢迎 {{sysUserName}} 使用互信交易平台后台系统！</span>
+       <span>欢迎 {{sysUserName}} 使用币客交易平台后台系统！</span>
        <i></i>
        <span class="logout" @click="handleLogoff">注销</span>
      </el-col>
@@ -41,7 +41,7 @@
 
         <template v-for="(item,index) in $router.options.routes" v-if="!item.hidden">
           <template :index="index+''" v-if="index == firstMenuIndex"> 
-            <el-menu-item v-for="(child,i) in item.children"  :index="child.path" :key="child.path" v-if="child&&!child.hidden" :class="{'is-active': isFirstClick && i == 0 || $route.matched[1] && $route.matched[1].name ==child.name}"  @click="handleClickSecondMemu">{{child.name}}</el-menu-item>  
+            <el-menu-item v-for="(child,i) in item.children"  :index="child.path" :key="child.path" v-if="child&&!child.hidden" :class="{'is-active': isFirstClick && i == 0 || $route.matched[1] && $route.matched[1].name ==child.name}"  @click="handleClickSecondMemu" >{{child.name}}</el-menu-item>  
           </template>
         </template>
       </el-menu>
@@ -61,13 +61,14 @@
  export default {
   data: function (){
     return {
+    roleId:null,
      active:true,
      sysUserName:'',
      firstMenuIndex:0,
      isFirstClick:false,
      firstClick:0,
      childPath:'/',
-     isAsideShow:true
+     isAsideShow:true,
     }
   },
   created:function(){
@@ -79,6 +80,7 @@
     }
   },
   mounted() {
+    this.roleId = sessionStorage.getItem('BITKER_ROLE_ID');
     let user = sessionStorage.getItem('BITKER_WALLET_USER');
     //console.log(user);
     if (user) {
@@ -161,13 +163,45 @@
             type: 'error'
           });
         }else{
+          let _this = this;
+          data.sort(function(x,y){
+            var rx = _this.wordCodeTrans(x.walletShortEn),ry = _this.wordCodeTrans(y.walletShortEn);
+            return rx - ry;
+          }); 
           let walletTypeList_string = JSON.stringify(data);
           sessionStorage.setItem('WalletTypeList',walletTypeList_string);
         }
         
       }).catch(() => {
       });
-    }
+    },
+    //单词转ASC码 排序 交易对  
+    wordCodeTrans(word){
+      if(word){
+        var wordArr = word.split("");
+        var wordCode = "";
+        /*for(var i = 0;i<wordArr.length;i++){
+         wordCode += wordArr[i].charCodeAt();
+        }*/
+        var wordCode_0 = wordArr[0]?wordArr[0].charCodeAt() + '' : '00',
+        wordCode_1 = wordArr[1] ? wordArr[1].charCodeAt() + '' : '00',
+        wordCode_2 = wordArr[2] ? wordArr[2].charCodeAt() + '' : '00', 
+        wordCode_3 = wordArr[3] ? wordArr[3].charCodeAt() + '' : '00'; 
+
+        wordCode = wordCode_0 + wordCode_1 + wordCode_2 + wordCode_3;  
+        return Number(wordCode);
+      }else{
+        return 0; 
+      }
+    },
+    showAdmMag(name){
+      let isMang = this.roleId == 2 || this.roleId == 3;
+      if(isMang && name == '系统管理'){
+        return true;
+      }else{
+        return false;
+      }
+    },
   }
  }
  </script>

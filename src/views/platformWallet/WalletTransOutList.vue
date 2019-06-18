@@ -29,10 +29,11 @@
         </el-form-item>
       </el-col>
       <el-col :span="24" class="toolbar" style="padding-bottom: 0px;margin-top: 0;">
-        <el-form-item label="地址">
-          <el-input v-model="form.book_address" clearable placeholder="地址"></el-input>
+        <el-form-item label="UID" >
+          <el-input v-model="form.uid" clearable  placeholder="UID"></el-input>
         </el-form-item>
-         <el-form-item label="打币方式">
+        
+        <el-form-item label="打币方式">
           <el-select v-model="form.audit_type" placeholder="请选择">
             <el-option
               v-for="item in auditTypes"
@@ -42,8 +43,12 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="地址">
+          <el-input v-model="form.address" clearable placeholder="地址"></el-input>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery('form')">查询</el-button>
+          <el-button type="primary" @click="handleExportClick()">导出</el-button>
         </el-form-item>
       </el-col>
     </el-form>
@@ -57,9 +62,11 @@
         </el-table-column>
         <el-table-column prop="walletType" label="币种" width="40"  align="center" :formatter="walletTypeFormatter">
         </el-table-column>
-         <el-table-column prop="bookAddress" label="用户钱包" width="160" align="center" >
+         <el-table-column prop="address" label="用户钱包" width="160" align="center" >
         </el-table-column>
-         <el-table-column prop="address" label="热钱包" width="160" align="center" :formatter="baseTypeFormatter">
+         <el-table-column prop="address" label="热钱包" width="80" align="center" :formatter="baseTypeFormatter">
+        </el-table-column>
+         <el-table-column prop="transMomey" label="提币申请数量" width="80" lign="right" :formatter="namberFormatter">
         </el-table-column>
          <!-- <el-table-column prop="address" label="认证级别" width="160" align="center" >
                  </el-table-column> -->
@@ -68,6 +75,8 @@
         <el-table-column prop="successGas" label="区块手续费" width="80" align="right" :formatter="namberFormatter">
         </el-table-column>
         <el-table-column prop="auditType" label="打币方式" width="60"  align="center" :formatter="auditTypeFormatter">
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="60"  align="center" :formatter="statusFormatter"  >
         </el-table-column>
          <el-table-column prop="addtime" label="申请时间" width="120" align="center" :formatter="tableTimeFormatter">
         </el-table-column>
@@ -78,7 +87,7 @@
            <el-button size="small" @click="handleDetailClick(scope.$index, scope.row)" 
             :style="{display: scope.row.status!=0?'inline-block':'none'}">查看</el-button>
             <el-button size="small" @click="handleTransClick(scope.$index, scope.row)" 
-            :style="{display: scope.row.status==0?'inline-block':'none'}">打币</el-button> 
+            :style="{display: scope.row.status==0?'inline-block':'none'}" :disabled="roleId==3">打币</el-button> 
           </template>
         </el-table-column>
       </el-table>
@@ -95,18 +104,21 @@
   </section>
 </template>
 <script>
-  import { requestApi } from '../../api/axios.js';
+  import { requestApi ,exportApi} from '../../api/axios.js';
   import util from '../../util.js';
   export default{
     data:function(){
       return{
+        roleId:null,
         tableFit:false,
         labelPosition:'left',
         dataRange:'',
         listTotal:0,//  列表数据总量
+        exportNumber:10,
         walletAddressListByPlat:[],
         //查询集合
         form:{
+          uid:'',
           api_method:'WalletTransOutList', 
           trans_id:null,//交易id 订单号 
           book_address:null,//提币地址
@@ -143,6 +155,37 @@
           {
             value:5,
             label:'总账户'
+          }
+        ],
+        //0 添加(待审核)1 成功 2 待发送 3 已发送 4 已审核 5 审核拒绝
+        statusList:[
+          {
+            value:null,
+            label:'全部'
+          },
+          {
+            value:0,
+            label:'添加(待审核)'
+          },
+          {
+            value:1,
+            label:'成功'
+          },
+          {
+            value:2,
+            label:'待发送'
+          },
+          {
+            value:3,
+            label:'已发送'
+          },
+          {
+            value:4,
+            label:'已审核'
+          },
+          {
+            value:5,
+            label:'审核拒绝'
           }
         ],
         //币种 钱包类型 选择器数据
@@ -185,6 +228,7 @@
       }
     },
     mounted(){
+       this.roleId = sessionStorage.getItem('BITKER_ROLE_ID');
       this.query();
       this.setWalletAddressListByPlat();
       this.setwalletTypeList();
@@ -218,6 +262,13 @@
           }
         }
       },
+      statusFormatter(row, column, cellValue, index){
+        for(let item of this.statusList){
+          if(item.value == cellValue){
+            return item.label;
+          }
+        }
+      },
       baseTypeFormatter(row, column, cellValue, index){
         //console.log('cellValue',cellValue);
         for(let item of this.walletAddressListByPlat){
@@ -239,6 +290,7 @@
       },
       //查询
       handleQuery(form){
+        this.form.page_number = 1;
         this.$refs[form].validate((valid) => {
           if (valid) {
            this.query();   
@@ -283,6 +335,50 @@
             this.listTotal = total;
           }
           //console.log(res);
+        }).catch(() => {
+        });
+      },
+      handleExportClick(){//导出
+         this.$prompt('请输入导出数据的条数', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /^[0-9]*$/,
+          inputErrorMessage: '数字格式不正确'
+        }).then(({ value }) => {
+          this.exportNumber = value;
+          this.export();
+          /*this.$message({
+            type: 'success',
+            message: '导出的条数是: ' + value
+          });*/
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '取消导出'
+          });       
+        });
+      },
+      export(){
+        let params = this.form;
+        params.api_method = 'WalletTransOutListExp';
+        params.page_number = 1;
+        params.page_size = this.exportNumber;
+        exportApi(params).then((res) => {
+         if(res){
+            this.form.api_method = 'WalletTransOutList'; 
+            this.$message({
+              message: '导出成功',
+              type: 'success'
+            });
+          }else{
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            } 
+          }
         }).catch(() => {
         });
       },

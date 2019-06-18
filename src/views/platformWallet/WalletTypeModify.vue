@@ -17,6 +17,13 @@
       
       </el-row>
       <el-row class="detail-row">
+        <el-col :span="4" class="detail-label">自动审核数量</el-col>
+        <el-col :span="10" class="detail-value">
+           <el-input v-model="form.auto_audit_threshold" clearable ></el-input>
+        </el-col>
+      
+      </el-row>
+      <el-row class="detail-row">
         <el-col :span="4" class="detail-label">提币权限</el-col>
         <el-col :span="10" class="detail-value">
           <template>
@@ -49,7 +56,8 @@
           cash_min_number:'',
           save_days:'',
           status:'1',
-          walletShortEn:''
+          walletShortEn:'',
+          auto_audit_threshold:'',
         }
       }
     },
@@ -109,6 +117,7 @@
             }else{
               this.form.walletShortEn = data.walletShortEn;
               this.form.cash_min_number = data.cashMinNumber;
+              this.form.auto_audit_threshold = data.autoAuditThreshold;
               this.form.status = data.status+'';
             }
             //console.log(res);

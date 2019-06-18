@@ -35,6 +35,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleQuery('form')">查询</el-button>
+          <el-button type="primary" @click="handleExportClick()">导出</el-button>
         </el-form-item>
       </el-col>
     </el-form>
@@ -63,7 +64,9 @@
         </el-table-column>
         <el-table-column prop="transMomey" label="转账数量" width="80" align="right" v-if="form.biz_type!=3" :formatter="namberFormatter">
         </el-table-column>
-         <el-table-column prop="transGas" label="转账手续费数量" width="80" align="right" v-if="form.biz_type==3" :formatter="namberFormatter">
+        <el-table-column prop="successGas" label="转账手续费数量" width="80" align="right" v-if="form.biz_type==3||form.biz_type==2" :formatter="namberFormatter">
+        </el-table-column>
+        <el-table-column prop="successMoney" label="成功金额" width="80" align="right" v-if="form.biz_type==3" :formatter="namberFormatter">
         </el-table-column>
         <el-table-column prop="transTime" label="到账时间" width="120" align="center" :formatter="tableTimeFormatter">
         </el-table-column>
@@ -81,7 +84,7 @@
   </section>
 </template>
 <script>
-  import { requestApi } from '../../api/axios.js';
+  import { requestApi ,exportApi} from '../../api/axios.js';
   import util from '../../util.js';
   export default{
     data:function(){
@@ -90,6 +93,7 @@
         labelPosition:'left',
         dataRange:'',
         listTotal:0,//  列表数据总量
+        exportNumber:10,
         
         //查询集合
         form:{
@@ -161,6 +165,7 @@
       
       //查询
       handleQuery(form){
+        this.form.page_number = 1;
         this.$refs[form].validate((valid) => {
           if (valid) {
            this.query();   
@@ -200,6 +205,50 @@
             this.listTotal = total;
           }
           console.log(res);
+        }).catch(() => {
+        });
+      },
+      handleExportClick(){//导出
+         this.$prompt('请输入导出数据的条数', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /^[0-9]*$/,
+          inputErrorMessage: '数字格式不正确'
+        }).then(({ value }) => {
+          this.exportNumber = value;
+          this.export();
+          /*this.$message({
+            type: 'success',
+            message: '导出的条数是: ' + value
+          });*/
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '取消导出'
+          });       
+        });
+      },
+      export(){
+        let params = this.form;
+        params.api_method = 'WalletTransOutPlatListExp';
+        params.page_number = 1;
+        params.page_size = this.exportNumber;
+        exportApi(params).then((res) => {
+         if(res){
+            this.form.api_method = 'WalletTransOutPlatList'; 
+            this.$message({
+              message: '导出成功',
+              type: 'success'
+            });
+          }else{
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+            if(status == '211'){
+              this.$router.push({ path: '/login'}); 
+            } 
+          }
         }).catch(() => {
         });
       },

@@ -20,14 +20,14 @@
         <el-col :span="2" class="detail-label">启用状态</el-col>
         <el-col :span="10" class="detail-value">
           <template>
-            <el-radio v-model="walletAddress.transLocked" label='0' @change="transLockedChange">启用</el-radio>
-            <el-radio v-model="walletAddress.transLocked" label='1' @change="transLockedChange">未启用</el-radio>
+            <el-radio v-model="walletAddress.status" label='0' @change="statusChange">启用</el-radio>
+            <el-radio v-model="walletAddress.status" label='1' @change="statusChange">未启用</el-radio>
           </template>
         </el-col>
       </el-row>
       <el-row class="detail-row" style="background:#fff;text-align:right">
         <el-col :span="24" class="detail-btn">
-           <el-button type="primary" @click="handleSave">保存</el-button>
+           <el-button type="primary" @click="handleSave" :disabled="roleId==3">保存</el-button>
         </el-col>
       </el-row>
     </section> 
@@ -61,14 +61,15 @@
   export default{
     data:function(){
       return{
-        transLocked:'',
+        roleId:null,
+        status:'',
         walletAddress:{
           uid:'',
           walletType:'',
           walletAddress:'',
           addtime:'',
           bindtime:'',
-          transLocked:''
+          status:''
         },
         walletTransInList:[],
          //币种 钱包类型 选择器数据
@@ -91,7 +92,7 @@
           } */
         ],
         //启用状态  选择器数据
-        transLockeds:[
+        statuss:[
           {
             value:null,
             label:'全部'
@@ -130,9 +131,9 @@
         return util.formatDate.format(cellTime);
         //return cellValue
       },
-      transLockedChange(v){
+      statusChange(v){
         console.log(v);
-        this.transLocked = v;
+        this.status = v;
       },
       handleSave(){
         var _this = this;
@@ -146,8 +147,8 @@
       },
       save(){
         let _id = this.$route.query.id;
-        let transLocked = parseInt(this.transLocked);
-        let saveParams = {api_method:'WalletAddressModify',id:_id,trans_locked:transLocked};
+        let status = parseInt(this.status);
+        let saveParams = {api_method:'WalletAddressModify',id:_id,status:status};
         requestApi(saveParams).then((res) => {
         //console.log(res);
         let {msg,status} = res;
@@ -187,8 +188,8 @@
               }
             }else{
               this.walletAddress = walletAddress;
-              this.walletAddress.transLocked += '';
-              this.transLocked = this.walletAddress.transLocked;
+              this.walletAddress.status += '';
+              this.status = this.walletAddress.status;
               this.walletTransInList = walletTransInList;
             }
             //console.log(res);
@@ -204,6 +205,9 @@
     },
 
     mounted(){
+
+      this.roleId = sessionStorage.getItem('BITKER_ROLE_ID');
+
       this.getDetail();
       this.setwalletTypeList();
       

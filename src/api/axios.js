@@ -1,10 +1,16 @@
 import axios from 'axios';
 
 
+
+let isProxy = 0;
+
+let base = isProxy?'/wallet/web/api':'list/wallet/web/api'
+
+
 //let base = 'list/wallet/web/api';
 //let base = 'http://192.168.2.109:3307/wallet/web/api';
 //let base = 'http://118.190.132.240:3307/wallet/web/api';
-let base = '/wallet/web/api';
+//let base = '/wallet/web/api';
 
 
 let apiParams = {
@@ -39,10 +45,11 @@ function setFormRequestParams(apiParams,params){
 }
 
 
-//导出
+//导出 !@#$%^&*()_+~
 const exportApi = params => { 
   let requestParams = setFormRequestParams(apiParams,params);
-  let expBase = 'list/wallet/admin/export' ;
+  //let expBase = 'list/wallet/admin/export' ;
+  let expBase =isProxy? '/wallet/admin/export': 'list/wallet/admin/export' ;
   let url = `${expBase}?${requestParams}`;
   return axios.post(url,{responseType: 'arraybuffer'})
   .then(res => res.data)

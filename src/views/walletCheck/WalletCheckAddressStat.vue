@@ -69,10 +69,10 @@
         <el-table-column prop="wallet_type" label="币种" width="80"  align="center" :formatter="walletTypeFormatter">
         </el-table-column>
 
-        <el-table-column prop="sumBalanceWallet" label="钱包系统账户余额总量" width="80" align="right" 
+        <el-table-column prop="sumBalanceWallet" label="区块链账户余额总量"  width="80" align="right" 
           :formatter="namberFormatter">
         </el-table-column>
-        <el-table-column prop="sumBalance" label="区块链账户余额总量" width="80" align="right" :formatter="namberFormatter">
+        <el-table-column prop="sumBalance" label="钱包系统账户余额总量"  width="80" align="right" :formatter="namberFormatter">
         </el-table-column>
 
         <el-table-column prop="status" label="对账状态" width="80" align="center" :formatter="statusFormatter">
@@ -214,6 +214,7 @@
       },
       //查询
       handleQuery(form){
+        this.form.page_number = 1;
         this.$refs[form].validate((valid) => {
           if (valid) {
            this.query();   

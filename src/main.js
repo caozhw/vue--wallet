@@ -7,9 +7,11 @@ import 'element-ui/lib/theme-chalk/index.css'
 
 import App from './App'
 import VueRouter from 'vue-router'
+import store from './store/store.js'
 //import router from './router'
 
 import routes from './routes'
+import QRCode from 'qrcode'
 
 
 

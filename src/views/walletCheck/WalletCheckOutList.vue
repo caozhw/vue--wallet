@@ -53,7 +53,7 @@
         <el-col :span="3"><el-input disabled v-model="unchecked"></el-input></el-col>
         <el-col :span="2">{{walletTypeFormatter(this.form.wallet_type)}}</el-col>
         <el-col :span="17" style="text-align:right"> 
-          <el-button type="primary" @click="handleVerifyClick()">审核</el-button>
+          <el-button type="primary" @click="handleVerifyClick()" :disabled="roleId==3">审核</el-button>
           <el-button type="primary" @click="handleExportClick()">导出</el-button>
         </el-col>
       </el-row>
@@ -104,6 +104,7 @@
   export default{
     data:function(){
       return{
+        roleId:null,
         tableFit:false,
         labelPosition:'right',
         dataRange:'',
@@ -114,6 +115,7 @@
         ids:'',//审核参数
         fileHref:null,
         download:null,
+        exportNumber:20,
         //查询集合
         form:{
           api_method:'WalletCheckOutList',
@@ -182,6 +184,7 @@
       }
     },
     mounted(){
+       this.roleId = sessionStorage.getItem('BITKER_ROLE_ID');
       this.form.wallet_type= this.$route.query.wallet_type;
       this.form.check_day= this.$route.query.check_day;
       this.query();
@@ -225,6 +228,7 @@
       },
       //查询
       handleQuery(form){
+        this.form.page_number = 1;
         this.$refs[form].validate((valid) => {
           if (valid) {
            this.query();   
@@ -320,9 +324,33 @@
         });
       },
       handleExportClick(){//导出
-        let params = Object.assign(this.form,{api_method:'WalletCheckOutListExp'})
+         this.$prompt('请输入导出数据的条数', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /^[0-9]*$/,
+          inputErrorMessage: '数字格式不正确'
+        }).then(({ value }) => {
+          this.exportNumber = value;
+          this.export();
+          /*this.$message({
+            type: 'success',
+            message: '导出的条数是: ' + value
+          });*/
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '取消导出'
+          });       
+        });
+      },
+      export(){
+        let params = this.form;
+        params.api_method = 'WalletCheckOutListExp';
+        params.page_number = 1;
+        params.page_size = this.exportNumber;
         exportApi(params).then((res) => {
-          if(res){
+         if(res){
+            this.form.api_method = 'WalletCheckOutList'; 
             this.$message({
               message: '导出成功',
               type: 'success'

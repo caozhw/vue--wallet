@@ -117,13 +117,14 @@
             requestApi(_this.form).then(response => {
               this.logining = false;
               //NProgress.done();
-              let { msg, status, data } = response;
+              let { msg, status, data ,roleId} = response;
               if (status !== '200') {
                 this.$message({
                   message: msg,
                   type: 'error'
                 });
               } else {
+                sessionStorage.setItem('BITKER_ROLE_ID', JSON.stringify(roleId));
                 sessionStorage.setItem('BITKER_WALLET_USER', JSON.stringify(data));
                 _this.$router.push({ path: '/UserChargeAddressList' });
               }
